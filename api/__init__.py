@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from config import Config
 from flask_cors import CORS
 from api.routes import register_routes
-from api.extensions import db, jwt
+from api.extensions import init_extensions
 
 def create_app():
 
@@ -12,7 +12,6 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:5000", "http://127.0.0.1:5500"]}})
-    db.init_app(app)
-    jwt.init_app(app)
+    init_extensions(app)
     register_routes(app)
     return app
