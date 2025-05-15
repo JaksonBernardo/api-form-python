@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from config import Config
 from flask_cors import CORS
 from api.routes import register_routes

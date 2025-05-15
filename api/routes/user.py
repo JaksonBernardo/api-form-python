@@ -12,11 +12,11 @@ user_bp = Blueprint("user_bp", __name__, url_prefix = "/user")
 @user_bp.route("/login", methods=["POST"])
 def login():
 
-    username = request.json.get("username")
+    email_user = request.json.get("email-user")
 
     password = request.json.get("password")
     
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(email=email_user).first()
 
     if user:
 
@@ -45,24 +45,4 @@ def refresh():
     return jsonify(access_token = new_access_token), 200
 
 
-@user_bp.route("/my-forms", methods=["GET"])
-@jwt_required()
-def my_forms():
 
-    current_user_id = get_jwt_identity()
-
-    user = User.query.get(current_user_id)
-
-    company = user.company
-    forms = company.forms
-    forms_list = []
-
-    for form in forms:
-
-        forms_list.append({
-            "id": form.id,
-            "title": form.title,
-            "type": form.type
-        })
-    
-    return jsonify({"forms": forms_list}), 200

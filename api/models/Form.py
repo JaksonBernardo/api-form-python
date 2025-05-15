@@ -10,6 +10,7 @@ class Form(db.Model):
     id_company = db.Column(db.Integer, db.ForeignKey("companys.id"), nullable=False)
 
     company = db.relationship("Company", back_populates="forms")
+    questions = db.relationship("Questions", back_populates="form")
 
     def __repr__(self):
         return f"<Form {self.title}>"
