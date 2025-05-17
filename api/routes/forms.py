@@ -98,7 +98,105 @@ def get_form(form_id):
         "title": form.title,
         "id_questions": [form.questions[i].id for i in range(len(form.questions))],
         "questions": [form.questions[i].text for i in range(len(form.questions))],
-        "type_questions": [form.questions[i].type_question for i in range(len(form.questions))]
+        "type_questions": [form.questions[i].type_question for i in range(len(form.questions))],
+        "options": [
+            [form.questions[i].options[j].text for j in range(len(form.questions[i].options))]
+            for i in range(len(form.questions))
+        ],
     }), 200
 
 
+@form_bp.route("/delete-form/<int:form_id>", methods = ["DELETE"])
+@jwt_required()
+def delete_form(form_id):
+
+    current_user_id = get_jwt_identity()
+
+    user = User.query.get(current_user_id)
+
+    company = user.company
+    form = Form.query.filter_by(id=form_id, company=company).first()
+
+    questions = form.questions
+
+    for i in range(len(questions)):
+
+        options = questions[i].options
+        for opt in options:
+            db.session.delete(opt)
+            db.session.commit()
+
+        db.session.delete(questions[i])
+        db.session.commit()
+
+    db.session.delete(form)
+    db.session.commit()
+
+    return jsonify({"msg": "Formulário deletado com sucesso"}), 200
+
+
+@form_bp.route("/update-form/<int:form_id>", methods = ["PUT"])
+@jwt_required()
+def update_form(form_id):
+
+    current_user_id = get_jwt_identity()
+
+    user = User.query.get(current_user_id)
+
+    company = user.company
+    form = Form.query.filter_by(id=form_id, company=company).first()
+
+    if not form:
+
+        return jsonify({"msg": "Formulário não encontrado"}), 404
+
+    data = request.get_json()
+
+    title = data.get("title")
+    type_form = data.get("type-form")
+    questions = data.get("questions")
+    type_questions = data.get("type-questions")
+    options_list = data.get("options")
+
+    if not title or not type_form:
+
+        return jsonify({"msg": "Título do formulário são obrigatórios"}), 400
+    
+    questions_list = form.questions
+
+    for i in range(len(questions_list)):
+
+        options = questions_list[i].options
+        for opt in options:
+            db.session.delete(opt)
+            db.session.commit()
+
+        db.session.delete(questions_list[i])
+        db.session.commit()
+
+    for i in range(len(questions)):
+
+        question = questions[i]
+        type_question = type_questions[i]
+
+        if type_question == "SELE_UNICA" or type_question == "SELE_MULTIPLA":
+            options_question = options_list[i]
+            question_obj = Questions(text=question, type_question=type_question, form=form)
+            db.session.add(question_obj)
+            db.session.commit()
+
+            for opt in options_question:
+                option_obj = Options(text=opt, id_question=question_obj.id)
+                db.session.add(option_obj)
+                db.session.commit()
+        else:
+            question_obj = Questions(text=question, type_question=type_question, form=form)
+            db.session.add(question_obj)
+            db.session.commit()
+
+    form.title = title
+    form.type = type_form
+
+    db.session.commit()
+
+    return jsonify({"msg": "Formulário atualizado com sucesso"}), 200
