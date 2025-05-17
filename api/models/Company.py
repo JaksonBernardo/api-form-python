@@ -13,6 +13,8 @@ class Company(db.Model):
 
     forms = db.relationship("Form", back_populates="company")
     users = db.relationship("User", back_populates="company")
+    clients = db.relationship("Clients", back_populates="company")
+    equipaments = db.relationship("Equipament", back_populates="company")
 
     def __repr__(self):
         return f"<Company {self.company_name}>"
